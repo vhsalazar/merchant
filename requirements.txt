@@ -1,2 +1,4 @@
 -e git://github.com/arjunc77/django-ogone.git#egg=django-ogone
 lxml
+requests
+suds
