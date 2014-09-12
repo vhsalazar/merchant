@@ -72,7 +72,7 @@ def attr_update(object_, dict_):
         setattr(object_, k, v)
 
 class EwayRapidIntegration(Integration):
-    display_name = "eWAY"
+    display_name = "eWAY Rapid v3"
     service_url = "https://au.ewaygateway.com/mh/payment"
     template = "billing/eway_api.html"
     urls = ()
