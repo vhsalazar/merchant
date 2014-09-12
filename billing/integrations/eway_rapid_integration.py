@@ -99,41 +99,21 @@ class EwayRapidIntegration(Integration):
         return EwayAuForm(initial=initial_data)
 
     def request_access_code(self, payment, return_url, customer=None,
-                            billing_country=None, ip_address=None):
+                            billing_country=None, shipping={}, ip_address=None):
         # # enforce required fields
-        # assert self.customer_id
-        # assert self.username
-        # assert self.password
-        # assert payment['total_amount']
-        # assert return_url
-        #
-        # # Request a new access code.
-        # req = client.factory.create("CreateAccessCodeRequest")
-        # req.Authentication.CustomerID = self.customer_id
-        # req.Authentication.Username = self.username
-        # req.Authentication.Password = self.password
-        # attr_update(req.Payment, translate(payment))
-        # attr_update(req.Customer, translate(customer or {}))
-        # req.RedirectUrl = return_url
-        # if ip_address:
-        #     req.IPAddress = ip_address
-        # if billing_country:
-        #     req.BillingCountry = billing_country
-        # del req.ResponseMode
-        #
-        # # Handle the response
-        # response = client.service.CreateAccessCode(req)
-        # self.access_code = response.AccessCode
-        #
+        assert self.username
+        assert self.password
+        assert payment['total_amount']
+        assert return_url
         # # turn customer to dict
         # customer_echo = dict(((k, getattr(response.Customer, k))
         #                       for k in dir(response.Customer)))
         rapid = RapidAPI(api_method='REST', api_format='JSON', username=self.username, password=self.password, debug=True)
         req = {
             'Customer': customer,
-            'ShippingAddress': {},
+            'ShippingAddress': shipping,
             'Options': [],
-            'Items': [],
+            'Items': payment.get('items', []),
             'Payment': {
                 'TotalAmount': payment['total_amount'] * 100,
                 'InvoiceNumber': payment['order_id'],
@@ -146,7 +126,6 @@ class EwayRapidIntegration(Integration):
             'RedirectUrl': return_url,
             'Method': 'TokenPayment', #data.get('ddlMethod'),
             'CustomerIP': ip_address or ''
-
         }
         result = rapid.create_access_code(req)[0]
         self.access_code = result['AccessCode']
@@ -155,21 +134,11 @@ class EwayRapidIntegration(Integration):
         # customer_echo = dict(((k, getattr(result['Customer'], k))
         #                               for k in dir(response.Customer)))
         #translate(result['Customer'])
-        return (self.access_code, result)
-
+        return (self.access_code, translate(result['Customer']))
 
     def check_transaction(self):
         if not self.access_code:
             raise ValueError("`access_code` must be specified")
-
-        # req = client.factory.create("GetAccessCodeResultRequest")
-        # req.Authentication.CustomerID = self.customer_id
-        # req.Authentication.Username = self.username
-        # req.Authentication.Password = self.password
-        # req.AccessCode = self.access_code
-        #
-        # response = client.service.GetAccessCodeResult(req)
-
         rapid = RapidAPI(api_method='REST', api_format='JSON', username=self.username, password=self.password, debug=True)
         result = rapid.get_access_code({'AccessCode': self.access_code})[0]
         options = result.get('Options')
