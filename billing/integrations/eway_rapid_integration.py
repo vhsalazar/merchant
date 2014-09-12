@@ -134,7 +134,7 @@ class EwayRapidIntegration(Integration):
         # customer_echo = dict(((k, getattr(result['Customer'], k))
         #                               for k in dir(response.Customer)))
         #translate(result['Customer'])
-        return (self.access_code, translate(result['Customer']))
+        return (self.access_code, translate(result['Customer']), result['Customer'])
 
     def check_transaction(self):
         if not self.access_code:
