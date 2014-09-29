@@ -87,6 +87,8 @@ class EwayRapidIntegration(Integration):
         self.customer_id = eway_settings["CUSTOMER_ID"]
         self.username = eway_settings["USERNAME"]
         self.password = eway_settings["PASSWORD"]
+        self.sandbox = eway_settings["SANDBOX"]
+        self.debug = eway_settings["DEBUG"]
         # Don't use X-Forwarded-For. It doesn't really matter if REMOTE_ADDR
         # isn't their *real* IP, we're only interested in what IP they're going
         # to use for their POST request to eWAY. If they're using a proxy to
@@ -108,7 +110,7 @@ class EwayRapidIntegration(Integration):
         # # turn customer to dict
         # customer_echo = dict(((k, getattr(response.Customer, k))
         #                       for k in dir(response.Customer)))
-        rapid = RapidAPI(api_method='REST', api_format='JSON', username=self.username, password=self.password, debug=True)
+        rapid = RapidAPI(api_method='REST', api_format='JSON', username=self.username, password=self.password, debug=self.debug, sandbox=self.sandbox)
         req = {
             'Customer': customer,
             'ShippingAddress': shipping,
@@ -139,7 +141,7 @@ class EwayRapidIntegration(Integration):
     def check_transaction(self):
         if not self.access_code:
             raise ValueError("`access_code` must be specified")
-        rapid = RapidAPI(api_method='REST', api_format='JSON', username=self.username, password=self.password, debug=True)
+        rapid = RapidAPI(api_method='REST', api_format='JSON', username=self.username, password=self.password, debug=self.debug, sandbox=self.sandbox)
         result = rapid.get_access_code({'AccessCode': self.access_code})[0]
         options = result.get('Options')
         data = {
